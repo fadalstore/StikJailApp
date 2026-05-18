@@ -1,0 +1,54 @@
+name: Dhisidda StikJail IPA
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - name: Soo qaado koodhka
+      uses: actions/checkout@v3
+
+    - name: Isku-xirka iyo Dhalinta Executable
+      run: |
+        clang -target arm64-apple-ios14.0 -framework Foundation main.m -o StikJail
+        
+    - name: Diyaarinta Qaab-dhismeedka App-ka
+      run: |
+        mkdir -p Payload/StikJail.app
+        mv StikJail Payload/StikJail.app/
+        
+        cat << 'EOF' > Payload/StikJail.app/Info.plist
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>CFBundleExecutable</key>
+            <string>StikJail</string>
+            <key>CFBundleIdentifier</key>
+            <string>com.fadal.stikjail</string>
+            <key>CFBundleName</key>
+            <string>StikJail</string>
+            <key>CFBundleVersion</key>
+            <string>1.0</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+            <key>LSRequiresIPhoneOS</key>
+            <true/>
+            <key>MinimumOSVersion</key>
+            <string>14.0</string>
+        </dict>
+        </plist>
+        EOF
+        
+        zip -r StikJail.ipa Payload/
+
+    - name: Soo Upload-garee Faylka Final-ka ah
+      uses: actions/upload-artifact@v3
+      with:
+        name: StikJail-IPA
+        path: StikJail.ipa
