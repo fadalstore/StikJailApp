@@ -11,7 +11,7 @@ jobs:
 
     steps:
     - name: Soo qaado koodhka
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Isku-xirka iyo Dhalinta Executable
       run: |
@@ -48,7 +48,7 @@ jobs:
         zip -r StikJail.ipa Payload/
 
     - name: Soo Upload-garee Faylka Final-ka ah
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: StikJail-IPA
         path: StikJail.ipa
