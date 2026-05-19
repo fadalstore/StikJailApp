@@ -15,8 +15,8 @@ jobs:
 
     - name: Isku-xirka iyo Dhalinta Executable
       run: |
-        # Waxaan halkan ku daray 'xcrun' si uu u helo iOS SDK saxda ah
-        clang -target arm64-apple-ios14.0 -isysroot $(xcrun --sdk iphoneos --show-sdk-path) -framework Foundation main.m -o StikJail
+        # Waxaan halkan ku daray '-framework UIKit' si uu u aqbalo shaashadda cusub
+        clang -target arm64-apple-ios14.0 -isysroot $(xcrun --sdk iphoneos --show-sdk-path) -framework Foundation -framework UIKit main.m -o StikJail
         
     - name: Diyaarinta Qaab-dhismeedka App-ka
       run: |
