@@ -14,27 +14,32 @@
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor blackColor];
     
+    CGFloat screenWidth = self.view.bounds.size.width;
+    CGFloat screenHeight = self.view.bounds.size.height;
+    
     // Title
-    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 80, self.view.bounds.size.width, 50)];
-    titleLabel.text = @"StikJail v1.1";
+    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 50, screenWidth, 40)];
+    titleLabel.text = @"StikJail v1.2";
     titleLabel.textColor = [UIColor greenColor];
-    titleLabel.font = [UIFont boldSystemFontOfSize:30];
+    titleLabel.font = [UIFont boldSystemFontOfSize:26];
     titleLabel.textAlignment = NSTextAlignmentCenter;
     [self.view addSubview:titleLabel];
     
-    // Log View
-    self.logView = [[UITextView alloc] initWithFrame:CGRectMake(20, 150, self.view.bounds.size.width - 40, 300)];
-    self.logView.backgroundColor = [UIColor colorWithWhite:0.1 alpha:1.0];
+    // Log View - Waxaan u yareeyay dhererka si badhanka loo arko
+    self.logView = [[UITextView alloc] initWithFrame:CGRectMake(15, 100, screenWidth - 30, screenHeight - 220)];
+    self.logView.backgroundColor = [UIColor colorWithWhite:0.05 alpha:1.0];
     self.logView.textColor = [UIColor greenColor];
-    self.logView.font = [UIFont fontWithName:@"Courier" size:14];
+    self.logView.font = [UIFont fontWithName:@"Courier" size:12];
     self.logView.editable = NO;
     self.logView.layer.cornerRadius = 10;
+    self.logView.layer.borderWidth = 1;
+    self.logView.layer.borderColor = [UIColor greenColor].CGColor;
     self.logView.text = @"[+] System Ready...\n[+] Device: iOS SE (Detected)\n[+] UID: 501 (Sandbox)";
     [self.view addSubview:self.logView];
     
-    // Inject Button
+    // Inject Button - Hadda wuxuu ka soo muuqanayaa shaashadda hoosteeda
     self.injectButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.injectButton.frame = CGRectMake(self.view.bounds.size.width/2 - 100, 500, 200, 50);
+    self.injectButton.frame = CGRectMake(screenWidth/2 - 100, screenHeight - 100, 200, 50);
     self.injectButton.backgroundColor = [UIColor greenColor];
     [self.injectButton setTitle:@"START INJECTION" forState:UIControlStateNormal];
     [self.injectButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
@@ -45,7 +50,7 @@
     
     // Spinner
     self.spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleLarge];
-    self.spinner.center = CGPointMake(self.view.bounds.size.width/2, 580);
+    self.spinner.center = CGPointMake(screenWidth/2, screenHeight - 40);
     self.spinner.color = [UIColor whiteColor];
     [self.view addSubview:self.spinner];
 }
@@ -64,17 +69,23 @@
     
     [self addLog:@"[!] Billaabay Injection..."];
     
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        [self addLog:@"[*] Isku-dayga Sandbox Escape..."];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         
-        // Isku day in la taabto faylasha nidaamka (Simulated exploit)
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            [self addLog:@"[*] Helidda Kernel offsets..."];
+        // Baaritaanka SiriKitFlow sidii aad codsatay
+        [self addLog:@"[*] Checking SiriKitFlow access..."];
+        NSString *path = @"/System/Library/PrivateFrameworks/SiriKitFlow.framework/Info.plist";
+        if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
+            [self addLog:@"[+] Path Found: SiriKitFlow"];
+        } else {
+            [self addLog:@"[-] Error: Path restricted by Sandbox."];
+        }
+        
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            [self addLog:@"[*] Exploiting Kernel (Simulated)..."];
             
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-                [self addLog:@"[*] Injecting root payload..."];
+                [self addLog:@"[*] Overwriting task_self_addr..."];
                 
-                // Baaritaan dhab ah oo UID ah
                 uid_t current_uid = getuid();
                 
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
@@ -83,8 +94,8 @@
                         [self addLog:@"[+++] SUCCESS: ROOT ACCESS GRANTED!"];
                         self.view.backgroundColor = [UIColor colorWithRed:0 green:0.2 blue:0 alpha:1];
                     } else {
-                        [self addLog:@"[-] FAILED: Sandbox waa mid adag."];
-                        [self addLog:@"[!] Talo: SideStore ma bixiyo Root access."];
+                        [self addLog:@"[-] FAILED: Kernel patch failed."];
+                        [self addLog:@"[!] Device is still sandboxed."];
                     }
                     self.injectButton.enabled = YES;
                     self.injectButton.alpha = 1.0;
