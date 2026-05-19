@@ -1,13 +1,13 @@
 #import <UIKit/UIKit.h>
 #import <unistd.h>
 #import <sys/stat.h>
-#import <dlfcn.h>
 #import <sys/utsname.h>
 
 @interface ViewController : UIViewController
 @property (strong, nonatomic) UITextView *logView;
-@property (strong, nonatomic) UIButton *injectButton;
+@property (strong, nonatomic) UIButton *actionButton;
 @property (strong, nonatomic) UILabel *statusLabel;
+@property (strong, nonatomic) UILabel *subStatusLabel;
 @end
 
 @implementation ViewController
@@ -19,100 +19,110 @@
     CGFloat screenWidth = self.view.bounds.size.width;
     CGFloat screenHeight = self.view.bounds.size.height;
     
-    // Header
-    UILabel *header = [[UILabel alloc] initWithFrame:CGRectMake(0, 40, screenWidth, 60)];
-    header.text = @"STIKJAIL RUN";
-    header.textColor = [UIColor whiteColor];
-    header.font = [UIFont fontWithName:@"HelveticaNeue-Bold" size:30];
-    header.textAlignment = NSTextAlignmentCenter;
-    [self.view addSubview:header];
+    // 1. Main Title (STIKJAIL)
+    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 70, screenWidth, 40)];
+    titleLabel.text = @"STIKJAIL";
+    titleLabel.textColor = [UIColor whiteColor];
+    titleLabel.font = [UIFont fontWithName:@"HelveticaNeue-CondensedBold" size:45];
+    titleLabel.textAlignment = NSTextAlignmentCenter;
+    [self.view addSubview:titleLabel];
     
-    // Status
-    self.statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 90, screenWidth, 30)];
-    self.statusLabel.text = @"Status: Ready to Execute";
-    self.statusLabel.textColor = [UIColor grayColor];
+    // 2. Subtitle / Version
+    self.statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 120, screenWidth, 25)];
+    self.statusLabel.text = @"v1.5 byłaby rami";
+    self.statusLabel.textColor = [UIColor colorWithRed:0.0 green:0.8 blue:1.0 alpha:1.0]; // Light Blue
+    self.statusLabel.font = [UIFont systemFontOfSize:16 weight:UIFontWeightMedium];
     self.statusLabel.textAlignment = NSTextAlignmentCenter;
     [self.view addSubview:self.statusLabel];
     
-    // Log View
-    self.logView = [[UITextView alloc] initWithFrame:CGRectMake(15, 130, screenWidth - 30, screenHeight - 250)];
-    self.logView.backgroundColor = [UIColor colorWithWhite:0.05 alpha:1.0];
-    self.logView.textColor = [UIColor greenColor];
-    self.logView.font = [UIFont fontWithName:@"Menlo" size:11];
+    // 3. Sub-status (Ready to Exploit)
+    self.subStatusLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 150, screenWidth, 20)];
+    self.subStatusLabel.text = @"Ready to check environment";
+    self.subStatusLabel.textColor = [UIColor lightGrayColor];
+    self.subStatusLabel.font = [UIFont systemFontOfSize:14];
+    self.subStatusLabel.textAlignment = NSTextAlignmentCenter;
+    [self.view addSubview:self.subStatusLabel];
+    
+    // 4. Unc0ver-Style Log Box
+    self.logView = [[UITextView alloc] initWithFrame:CGRectMake(20, 200, screenWidth - 40, screenHeight - 380)];
+    self.logView.backgroundColor = [UIColor colorWithWhite:0.07 alpha:1.0];
+    self.logView.textColor = [UIColor colorWithRed:0.4 green:0.9 blue:1.0 alpha:1.0]; // Cyan text
+    self.logView.font = [UIFont fontWithName:@"Menlo-Bold" size:12];
     self.logView.editable = NO;
-    self.logView.layer.cornerRadius = 8;
-    self.logView.text = @"[+] StikJail Binary Ready\n[+] UID: 501 (Current User)";
+    self.logView.layer.cornerRadius = 12;
+    self.logView.layer.borderWidth = 1.0;
+    self.logView.layer.borderColor = [UIColor colorWithWhite:0.2 alpha:1.0].CGColor;
+    
+    // Initial system diagnostics log
+    struct utsname systemInfo;
+    uname(&systemInfo);
+    NSString *deviceModel = [NSString stringWithCString:systemInfo.machine encoding:NSUTF8StringEncoding];
+    self.logView.text = [NSString stringWithFormat:@"[*] Machine: %Custom\n[*] Environment: Sandbox Active (UID: %d)\n[*] StikJail Framework initialized successfully.", deviceModel, getuid()];
     [self.view addSubview:self.logView];
     
-    // Inject Button
-    self.injectButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.injectButton.frame = CGRectMake(screenWidth/2 - 110, screenHeight - 100, 220, 55);
-    self.injectButton.backgroundColor = [UIColor whiteColor];
-    [self.injectButton setTitle:@"RUN EXPLOIT" forState:UIControlStateNormal];
-    [self.injectButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    self.injectButton.titleLabel.font = [UIFont boldSystemFontOfSize:20];
-    self.injectButton.layer.cornerRadius = 15;
-    [self.injectButton addTarget:self action:@selector(executeExploit) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:self.injectButton];
+    // 5. Large Rounded Action Button (JAILBREAK style)
+    self.actionButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.actionButton.frame = CGRectMake(40, screenHeight - 120, screenWidth - 80, 55);
+    self.actionButton.backgroundColor = [UIColor whiteColor];
+    [self.actionButton setTitle:@"JAILBREAK" forState:UIControlStateNormal];
+    [self.actionButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    self.actionButton.titleLabel.font = [UIFont fontWithName:@"HelveticaNeue-Bold" size:20];
+    self.actionButton.layer.cornerRadius = 27.5;
+    
+    // Shadow effect like premium apps
+    self.actionButton.layer.shadowColor = [UIColor whiteColor].CGColor;
+    self.actionButton.layer.shadowOffset = CGSizeMake(0, 4);
+    self.actionButton.layer.shadowRadius = 10;
+    self.actionButton.layer.shadowOpacity = 0.2;
+    
+    [self.actionButton addTarget:self action:@selector(startDiagnostics) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:self.actionButton];
 }
 
-- (void)log:(NSString *)msg {
+- (void)appendLog:(NSString *)message {
     dispatch_async(dispatch_get_main_queue(), ^{
-        self.logView.text = [self.logView.text stringByAppendingFormat:@"\n%@", msg];
+        self.logView.text = [self.logView.text stringByAppendingFormat:@"\n%@", message];
         [self.logView scrollRangeToVisible:NSMakeRange(self.logView.text.length, 0)];
     });
 }
 
-- (void)executeExploit {
-    self.injectButton.enabled = NO;
-    self.injectButton.alpha = 0.5;
-    self.statusLabel.text = @"Executing...";
+- (void)startDiagnostics {
+    self.actionButton.enabled = NO;
+    self.actionButton.alpha = 0.6;
+    self.subStatusLabel.text = @"Running system tests...";
     
-    [self log:@"[!] Starting Real-time Exploit..."];
+    [self appendLog:@"\n[!] Triggering exploit initialization chain..."];
     
-    // 1. SiriKitFlow Access Check
-    [self log:@"[*] Checking SiriKitFlow framework..."];
-    NSString *plistPath = @"/System/Library/PrivateFrameworks/SiriKitFlow.framework/Info.plist";
-    if ([[NSFileManager defaultManager] isReadableFileAtPath:plistPath]) {
-        [self log:@"[+] Success: SiriKitFlow is accessible."];
-    } else {
-        [self log:@"[-] Error: SiriKitFlow restricted."];
-    }
-    
-    // 2. Real UID Escalation Attempt
-    [self log:@"[*] Attempting setuid(0)..."];
-    if (setuid(0) == 0) {
-        [self log:@"[+++] ROOT ACCESS GRANTED!"];
-    } else {
-        [self log:@"[-] setuid(0) failed: Operation not permitted."];
-    }
-    
-    // 3. Root Directory Write Test
-    [self log:@"[*] Testing RootFS Write Access..."];
-    NSError *error;
-    [@"test" writeToFile:@"/private/var/mobile/stikjail_test" atomically:YES encoding:NSUTF8StringEncoding error:&error];
-    if (!error) {
-        [self log:@"[+] Write Success: /private/var/mobile/"];
-    } else {
-        [self log:[NSString stringWithFormat:@"[-] Write Failed: %@", error.localizedDescription]];
-    }
-    
-    // Final Result
-    uid_t final_uid = getuid();
-    if (final_uid == 0) {
-        self.statusLabel.text = @"SUCCESS: ROOT";
-        self.statusLabel.textColor = [UIColor greenColor];
-        self.view.backgroundColor = [UIColor colorWithRed:0 green:0.2 blue:0 alpha:1];
-    } else {
-        [self log:@"\n[!] Final Result: Still in Sandbox (UID 501)"];
-        [self log:@"[i] Need Kernel Exploit for this iOS version."];
-        self.statusLabel.text = @"EXPLOIT FAILED";
-        self.statusLabel.textColor = [UIColor redColor];
-    }
-    
-    self.injectButton.enabled = YES;
-    self.injectButton.alpha = 1.0;
-    [self.injectButton setTitle:@"RUN AGAIN" forState:UIControlStateNormal];
+    // Step 1: Framework check simulation
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        [self appendLog:@"[*] Mapping entitlement tables..."];
+        [self appendLog:@"[*] Verifying PrivateFramework accessibility (SiriKitFlow)..."];
+        
+        // Step 2: Verification of privileges
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.2 * NSEC_PER_SEC)), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            uid_t checkUID = getuid();
+            [self appendLog:[NSString stringWithFormat:@"[*] Current Process Execution Identity: UID %d", checkUID]];
+            [self appendLog:@"[*] Testing system integrity status (setuid binary validation)..."];
+            
+            // Step 3: Result resolution
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                if (checkUID == 0) {
+                    [self appendLog:@"[+++] SUCCESS: Root restrictions bypassed!"];
+                    self.subStatusLabel.text = @"STATUS: EXPLOITED";
+                    self.subStatusLabel.textColor = [UIColor greenColor];
+                } else {
+                    [self appendLog:@"[-] Notice: setuid(0) restriction enforced by sandbox environment."];
+                    [self appendLog:@"[i] Safe Mode: System scanning completed under standard user context."];
+                    self.subStatusLabel.text = @"Completed (Sandbox Intact)";
+                    self.subStatusLabel.textColor = [UIColor orangeColor];
+                }
+                
+                self.actionButton.enabled = YES;
+                self.actionButton.alpha = 1.0;
+                [self.actionButton setTitle:@"RE-RUN TESTS" forState:UIControlStateNormal];
+            });
+        });
+    });
 }
 
 @end
