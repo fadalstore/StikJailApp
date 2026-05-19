@@ -5,7 +5,7 @@
 #import <arpa/inet.h>
 #import <sys/utsname.h>
 #import <sys/sysctl.h>
-#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
+#import <MobileCoreServices/MobileCoreServices.h>
 
 @interface ViewController : UIViewController <UITextFieldDelegate, UIDocumentPickerDelegate>
 @property (strong, nonatomic) UITextView *terminalView;
@@ -25,13 +25,13 @@
     
     // Header Title
     UILabel *header = [[UILabel alloc] initWithFrame:CGRectMake(0, 50, width, 30)];
-    header.text = @"STIKJAIL PRODUCTION INTERACTIVE";
+    header.text = @"STIKJAIL UTILITY TERMINAL";
     header.textColor = [UIColor whiteColor];
     header.font = [UIFont fontWithName:@"Menlo-Bold" size:14];
     header.textAlignment = NSTextAlignmentCenter;
     [self.view addSubview:header];
     
-    // Import Button (Filesystems Integration)
+    // Import Button
     self.importButton = [UIButton buttonWithType:UIButtonTypeCustom];
     self.importButton.frame = CGRectMake(width - 110, 50, 90, 30);
     self.importButton.backgroundColor = [UIColor colorWithWhite:0.15 alpha:1.0];
@@ -49,7 +49,7 @@
     self.terminalView.font = [UIFont fontWithName:@"Courier-Bold" size:13];
     self.terminalView.editable = NO;
     self.terminalView.layer.cornerRadius = 8;
-    self.terminalView.text = @"stikjail-shell v2.5 [Network Native Mode]\nType 'help' to fetch active commands.\n\nstikjail@iphone:~$ ";
+    self.terminalView.text = @"stikjail-shell v2.6 [Stable Mode]\nType 'help' to fetch active commands.\n\nstikjail@iphone:~$ ";
     [self.view addSubview:self.terminalView];
     
     // Command Input
@@ -89,10 +89,10 @@
     return YES;
 }
 
-// iOS Filesystem Picker
+// iOS Filesystem Picker (Using Classic Safe Frameworks)
 - (void)openDocumentPicker {
     [self writeToTerminal:@"[*] Invoking iOS Document File Picker..."];
-    UIDocumentPickerViewController *picker = [[UIDocumentPickerViewController alloc] initForOpeningContentTypes:@[[UTType typeWithIdentifier:@"public.item"]]];
+    UIDocumentPickerViewController *picker = [[UIDocumentPickerViewController alloc] initWithDocumentTypes:@[(__bridge NSString *)kUTTypeItem] inMode:UIDocumentPickerModeOpen];
     picker.delegate = self;
     picker.allowsMultipleSelection = NO;
     [self presentViewController:picker animated:YES completion:nil];
@@ -101,8 +101,8 @@
 - (void)documentPicker:(UIDocumentPickerViewController *)controller didPickDocumentsAtURLs:(NSArray<NSURL *> *)urls {
     NSURL *url = urls.firstObject;
     if (url && [url startAccessingSecurityScopedResource]) {
-        [self writeToTerminal:[NSString stringWithFormat:@"[+] Connected to File: %Custom", url.lastPathComponent]];
-        [self writeToTerminal:[NSString stringWithFormat:@"[i] Accessible Path: %Custom", url.path]];
+        [self writeToTerminal:[NSString stringWithFormat:@"[+] Connected to File: %@", url.lastPathComponent]];
+        [self writeToTerminal:[NSString stringWithFormat:@"[i] Accessible Path: %@", url.path]];
         [url stopAccessingSecurityScopedResource];
     }
 }
@@ -114,7 +114,7 @@
     
     if ([rawCmd isEqualToString:@""]) return;
     
-    [self writeToTerminal:[NSString stringWithFormat:@"stikjail@iphone:~$ %Custom", rawCmd]];
+    [self writeToTerminal:[NSString stringWithFormat:@"stikjail@iphone:~$ %@", rawCmd]];
     NSArray *components = [rawCmd componentsSeparatedByString:@" "];
     NSString *baseCmd = components[0];
     
@@ -142,7 +142,7 @@
         [self runRealPing:components[1]];
     }
     else {
-        [self writeToTerminal:[NSString stringWithFormat:@"stikjail: command not found: %Custom", baseCmd]];
+        [self writeToTerminal:[NSString stringWithFormat:@"stikjail: command not found: %@", baseCmd]];
     }
     
     [self writeToTerminal:@"\nstikjail@iphone:~$ "];
@@ -161,14 +161,14 @@
     double memoryInGB = (double)physicalMemory / (1024 * 1024 * 1024);
     
     [self writeToTerminal:@"--- HARDWARE DIAGNOSTICS ---"];
-    [self writeToTerminal:[NSString stringWithFormat:@"  Model Architecture: %Custom", [NSString stringWithUTF8String:systemInfo.machine]]];
-    [self writeToTerminal:[NSString stringWithFormat:@"  Kernel Version:     %Custom", [NSString stringWithUTF8String:systemInfo.release]]];
+    [self writeToTerminal:[NSString stringWithFormat:@"  Model Architecture: %@", [NSString stringWithUTF8String:systemInfo.machine]]];
+    [self writeToTerminal:[NSString stringWithFormat:@"  Kernel Version:     %@", [NSString stringWithUTF8String:systemInfo.release]]];
     [self writeToTerminal:[NSString stringWithFormat:@"  Total System RAM:   %.2f GB", memoryInGB]];
 }
 
 // Real Port Scanner
 - (void)runRealNetworkScan:(NSString *)ipAddress {
-    [self writeToTerminal:[NSString stringWithFormat:@"[*] Port scanning host %Custom via standard TCP sockets...", ipAddress]];
+    [self writeToTerminal:[NSString stringWithFormat:@"[*] Port scanning host %@ via standard TCP sockets...", ipAddress]];
     NSArray *targetPorts = @[@22, @80, @443, @8080];
     const char *ipCString = [ipAddress UTF8String];
     
@@ -191,9 +191,9 @@
             
             long status = connect(sock, (struct sockaddr *)&addr, sizeof(addr));
             if (status == 0) {
-                [self writeToTerminal:[NSString stringWithFormat:@"  [+] Port %Custom: OPEN", portObj]];
+                [self writeToTerminal:[NSString stringWithFormat:@"  [+] Port %@: OPEN", portObj]];
             } else {
-                [self writeToTerminal:[NSString stringWithFormat:@"  [-] Port %Custom: Closed", portObj]];
+                [self writeToTerminal:[NSString stringWithFormat:@"  [-] Port %@: Closed", portObj]];
             }
             close(sock);
         }
@@ -205,10 +205,10 @@
 - (void)runRealPing:(NSString *)host {
     NSString *urlString = host;
     if (![urlString hasPrefix:@"http://"] && ![urlString hasPrefix:@"https://"]) {
-        urlString = [NSString stringWithFormat:@"https://%Custom", host];
+        urlString = [NSString stringWithFormat:@"https://%@", host];
     }
     
-    [self writeToTerminal:[NSString stringWithFormat:@"PING %Custom... sending web socket handshake...", host]];
+    [self writeToTerminal:[NSString stringWithFormat:@"PING %@... sending web socket handshake...", host]];
     
     NSURL *url = [NSURL URLWithString:urlString];
     if (!url) {
@@ -220,13 +220,13 @@
     
     NSURLSessionDataTask *task = [[NSURLSession sharedSession] dataTaskWithURL:url completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
         NSTimeInterval endTime = [NSDate timeIntervalSinceReferenceDate];
-        NSTimeInterval duration = (endTime - startTime) * 1000.0; // beddelid Milliseconds
+        NSTimeInterval duration = (endTime - startTime) * 1000.0;
         
         if (error) {
-            [self writeToTerminal:[NSString stringWithFormat:@"[-] Connection to %Custom failed: %Custom", host, error.localizedDescription]];
+            [self writeToTerminal:[NSString stringWithFormat:@"[-] Connection to %@ failed: %@", host, error.localizedDescription]];
         } else {
             NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
-            [self writeToTerminal:[NSString stringWithFormat:@"[+] Reply from %Custom: status_code=%ld time=%.2fms", host, (long)httpResponse.statusCode, duration]];
+            [self writeToTerminal:[NSString stringWithFormat:@"[+] Reply from %@: status_code=%ld time=%.2fms", host, (long)httpResponse.statusCode, duration]];
         }
     }];
     [task resume];
@@ -234,7 +234,6 @@
 
 @end
 
-// AppDelegate Static Setup
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 @property (strong, nonatomic) UIWindow *window;
 @end
